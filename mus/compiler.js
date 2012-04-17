@@ -4,13 +4,12 @@ var compile = function (musexpr)
   var notes = [];
   var times = [];
   var time = 0;
-  var endtime = 0;
+  var savedtime = 0;
   while (stack.length !== 0)
   {
     var curr = stack.pop();
     if (curr.tag === "rest")
     {
-      notes.push({ tag: "note", dur: curr.dur, start: time });
       time += curr.dur;
     }
     else if (curr.tag === "note")
@@ -41,13 +40,15 @@ var compile = function (musexpr)
     }
     else if (curr.tag === "reset")
     {
-      endtime = time;
-      time = times.pop();
+      // Fix for nested "par"s thanks to ericbb
+      savedtime = times.pop();
+      times.push(time);
+      time = savedtime;
     }
     else if (curr.tag === "endpar")
     {
-      time = Math.max(time, endtime);
-      endtime = 0;
+      savedtime = times.pop();
+      time = Math.max(time, savedtime);
     }
   }
   return notes;
@@ -56,19 +57,30 @@ var compile = function (musexpr)
 var melody_mus = 
     { tag: 'seq',
       left:
+       { tag: 'par',
+         left:
+         { tag: 'seq',
+           left: { tag: 'note', pitch: 'c4', dur: 500 },
+           right: { tag: 'note', pitch: 'f3', dur: 1000 } },
+         right:
+         { tag: 'par',
+           left: { tag: 'note', pitch: 'd4', dur: 250 },
+           right: { tag: 'note', pitch: 'e4', dur: 250 } } },
+      right:
        { tag: 'repeat',
          section:
           { tag: 'seq',
             left: { tag: 'note', pitch: 'a4', dur: 250 },
             right: { tag: 'rest', dur: 250 } },
-          count: 3 },
-      right:
-       { tag: 'par',
-         left: { tag: 'note', pitch: 'c4', dur: 500 },
-         right:
-         { tag: 'seq',
-           left: { tag: 'note', pitch: 'd4', dur: 500 },
-           right: { tag: 'note', pitch: 'f3', dur: 250 } } } };
+          count: 3 } };
+var result_note =
+  [ { tag: 'note', pitch: 60, dur: 500, start: 0 },
+    { tag: 'note', pitch: 53, dur: 1000, start: 500 },
+    { tag: 'note', pitch: 62, dur: 250, start: 0 },
+    { tag: 'note', pitch: 64, dur: 250, start: 0 },
+    { tag: 'note', pitch: 69, dur: 250, start: 1500 },
+    { tag: 'note', pitch: 69, dur: 250, start: 2000 },
+    { tag: 'note', pitch: 69, dur: 250, start: 2500 } ];
 
 console.log(melody_mus);
 console.log(compile(melody_mus));
