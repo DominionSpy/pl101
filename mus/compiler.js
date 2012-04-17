@@ -1,3 +1,15 @@
+var pitchToMidi = function (pitch)
+{
+  var lookup = {c:0,d:2,e:4,f:5,g:7,a:9,b:11};
+  var match = /^([a-g])([b#])?([0-8])$/.exec(pitch);
+  var note = match[1];
+  var noteVal = lookup[note];
+  if (match[2] === "b") noteVal--;
+  if (match[2] === "#") noteVal++;
+  var octave = match[3];
+  return 12 + noteVal + (12 * octave);
+}
+
 var compile = function (musexpr)
 {
   var stack = [musexpr];
@@ -14,8 +26,7 @@ var compile = function (musexpr)
     }
     else if (curr.tag === "note")
     {
-      var midi = 12 + {c:0,d:2,e:4,f:5,g:7,a:9,b:11}[curr.pitch.charAt(0)] + (12 * curr.pitch.charAt(1));
-      notes.push({ tag: "note", pitch: midi, dur: curr.dur, start: time });
+      notes.push({ tag: "note", pitch: pitchToMidi(curr.pitch), dur: curr.dur, start: time });
       time += curr.dur;
     }
     else if (curr.tag === "repeat")
@@ -61,11 +72,11 @@ var melody_mus =
          left:
          { tag: 'seq',
            left: { tag: 'note', pitch: 'c4', dur: 500 },
-           right: { tag: 'note', pitch: 'f3', dur: 1000 } },
+           right: { tag: 'note', pitch: 'f#3', dur: 1000 } },
          right:
          { tag: 'par',
            left: { tag: 'note', pitch: 'd4', dur: 250 },
-           right: { tag: 'note', pitch: 'e4', dur: 250 } } },
+           right: { tag: 'note', pitch: 'eb4', dur: 250 } } },
       right:
        { tag: 'repeat',
          section:
