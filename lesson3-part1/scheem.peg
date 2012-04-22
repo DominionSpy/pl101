@@ -1,0 +1,31 @@
+start =
+    expression
+
+expression =
+    whitespace? expr:(quoteexpr / atom / atomlist) whitespace?
+       { return expr; }
+
+quoteexpr =
+    left: "'" right: expression
+      { return ["quote"].concat(right); }
+
+atomlist =
+	"("  expr: expression+ ")"
+    	{ return expr; }
+        
+validchar
+    = [0-9a-zA-Z_?!+-=@#$%^&*/.]
+
+atom =
+    chars:validchar+
+        { return chars.join(""); }
+
+whitespace =
+    (spacechar / eolchar / comment)+
+
+comment =
+    ";;" (!eolchar .)*
+    
+spacechar = [ \u0009]
+
+eolchar = [\n\r]
