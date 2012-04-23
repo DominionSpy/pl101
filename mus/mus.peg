@@ -1,0 +1,27 @@
+start = expression
+
+expression = whitespace* expr: (seq / par / repeat / note / rest) whitespace*
+  { return expr; }
+
+atom = whitespace* expr: (par / repeat / note / rest) whitespace*
+  { return expr; }
+
+seq = left: atom right: expression
+  { return { tag: "seq", left: left, right: right }; }
+
+par = "[" left: expression "=" right: expression "]"
+  { return { tag: "par", left: left, right: right }; }
+
+repeat = count: integer ":" section: expression ":"
+  { return { tag: "repeat", section: section, count: count }; }
+
+note = chars:([a-g] [b#]? [0-8]) "(" dur: integer ")"
+  { return { tag: "note", pitch: chars.join(""), dur: dur }; }
+
+rest = "." "(" dur: integer ")"
+  { return { tag: "rest", dur: dur }; }
+
+integer = first:[1-9] rest:[0-9]*
+  { return parseInt(first + rest.join("")); }
+
+whitespace = " "
